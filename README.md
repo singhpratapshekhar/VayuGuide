@@ -1,83 +1,70 @@
-# VayuGuide (वायुगाइड) — Urban Winter Smog & Lifestyle Assistant
+# VayuGuide (वायुगाइड) — Clean Air Co-Pilot for Indian Families & RWAs
 
-> **A GenAI-powered interactive web dashboard and lifestyle assistant tailored for Indian urban families and Resident Welfare Associations (RWAs) navigating severe winter smog episodes (GRAP Stages I to IV).**
+> **A GenAI-powered interactive web assistant that helps families and communities navigate severe winter smog and urban air pollution — suggesting low-emission daily routines, frugal indoor air quality hacks, and sustainable alternatives tailored to their location and lifestyle, while clearly explaining the direct measurable impact of every choice.**
 
 ---
 
 ## 🎯 Target Audience & Regional Focus
-Engineered for high-vulnerability urban centers across the Indo-Gangetic Plain and coastal metropolitan belts:
-* **Delhi NCR** (Severe+, Stubble & Vehicular Inversion Plume)
-* **Kanpur** (Severe, Industrial Corridor & Brick Kiln Basin)
-* **Lucknow** (Very Poor, Traffic Congestion & Night Warming Stagnation)
-* **Patna** (Very Poor, Gangetic Valley River Fog Trap)
-* **Mumbai** (Moderate to Poor, Coastal Moisture Inversion)
-* **Kolkata** (Poor, Old Commercial Fleet & Biomass Haze)
+Engineered for urban centers across the Indo-Gangetic Plain, industrial belts, and coastal metros (plus live GPS & global Open-Meteo city search):
+* **Delhi NCR** (Nocturnal thermal inversion, vehicular exhaust, regional stubble & biomass plume)
+* **Kanpur** (Industrial corridor particulates, brick kiln emissions, stagnant winter fog)
+* **Lucknow** (Evening traffic congestion, low-wind nocturnal stagnation)
+* **Patna** (Gangetic valley moisture fog trap, construction dust, biomass heating)
+* **Mumbai & Kolkata** (Coastal moisture inversion, diesel corridor traffic, river delta haze)
+* **Bengaluru, Pune, Hyderabad, Jaipur, Ahmedabad** + any city via Open-Meteo Geocoding & GPS
 
 ---
 
-## 🔬 Scientific Foundations & Formulae
+## 🔬 Scientific Foundations & Direct Impact Formulae
 
 1. **Berkeley Earth Particulate Exposure Equivalence:**
    $$\text{Daily Cigarette Equivalence} = \frac{\text{PM}_{2.5} \, (\mu\text{g/m}^3)}{22}$$
-   Inhaling $22 \, \mu\text{g/m}^3$ of fine particulate over 24 hours matches the cytotoxic stress of smoking 1 conventional cigarette.
+   Inhaling $22 \, \mu\text{g/m}^3$ of $\text{PM}_{2.5}$ over 24 hours approximates the cytotoxic load of smoking 1 cigarette.
 
-2. **Inhaled Particulate Avoidance Calculation:**
-   $$\text{PM}_{2.5} \text{ Avoided (mg/person/day)} = \frac{(\text{Outdoor PM}_{2.5} - \text{Indoor PM}_{2.5}) \times 12 \, \text{m}^3}{1000}$$
-   Assuming an average adult resting breathing tidal volume of $12 \, \text{m}^3$ of air per 24 hours.
+2. **Inhaled Particulate Avoidance (Family & Winter Scale):**
+   $$\text{PM}_{2.5} \text{ Avoided (mg/person/day)} = \frac{(\text{Baseline PM}_{2.5} - \text{Protected PM}_{2.5}) \times 12 \, \text{m}^3}{1000}$$
+   Computed across resting adult tidal volume ($12 \, \text{m}^3/\text{day}$), household size, and a 120-day winter smog season.
 
 3. **Diurnal Inversion & Solar Ventilation Window:**
-   * **06:00 – 09:00 AM:** Surface cooling creates a steep nocturnal temperature inversion ceiling trapping toxic PM2.5 within 50m of ground level. Complete lockdown required.
-   * **13:00 – 15:30 PM:** Peak solar irradiation heats the surface, triggering convective thermal lifting and boundary layer expansion. Ground-level AQI temporarily dips by 25–40%, making this the **sole recommended window for 20-minute cross-ventilation**.
+   * **06:00 – 09:00 AM:** Surface cooling forms a nocturnal temperature inversion trapping $\text{PM}_{2.5}$ near ground level.
+   * **12:30 – 03:00 PM:** Midday solar irradiation expands the planetary boundary layer, dropping ground-level AQI by 25–40% — the safest cross-ventilation window.
 
 4. **Community Multiplier & RWA Equation:**
-   * Eliminating scrap wood and leaf burning across society security gates saves **~2.4 kg of PM2.5 emissions per gate per winter night**.
-   * Providing an **800W quartz radiant heater** costs less than ₹850 and prevents ground-floor residential plume accumulation.
+   * Replacing scrap wood and leaf burning at society security gates with 800W quartz radiant heaters prevents **~2.4 kg of $\text{PM}_{2.5}$ emissions per gate per night**.
 
 ---
 
-## 🛠️ Tech Stack & Key Files
-* **Component:** `VayuGuide.jsx` (Single-file runnable React component with stateful hooks and Lucide React icons)
-* **Interactive Standalone HTML:** `index.html` (Runs in browser via ESM + Tailwind CSS CDN + Babel Standalone)
-* **Package Config:** `package.json` (Vite + React 18 compatible)
+## 🌟 6 Core Modules
+
+1. **Dashboard & Household Lifestyle Profiler (`dashboard`)**
+   * Live Open-Meteo AQI & multi-pollutant telemetry ($\text{PM}_{2.5}$, $\text{PM}_{10}$, $\text{NO}_2$, $\text{O}_3$), GPS detection, city search, and a **50–500 AQI Smog Scenario Simulator** (Moderate through GRAP Stage IV).
+   * Interactive **Household & Lifestyle Profiler** (school kids, seniors, asthma/COPD, incense usage, family size, commute mode & distance, home floor/type, cooking style) with live before/after **Direct Impact** comparison.
+2. **Low-Emission Daily Routine & 24h Diurnal Planner (`routine`)**
+   * Time-blocked daily defense routine synchronized to the city's diurnal inversion curve, with interactive completion tracking, emission impact badges, and 1-tap shareable summary.
+3. **Indoor Air Quality Hacks & Room Simulator (`indoor`)**
+   * 6 toggleable low-cost indoor hacks (EVA door tape, *geela pocha* damp mopping, ₹1,800 DIY Box-Fan + HEPA H13 blueprint, pre-drafted chimney, smoke-free prayer, carbon/plant buffer) with a room size Air Changes Per Hour (ACH) calculator and N95 fit/lifespan estimator.
+4. **Sustainable Alternatives & Direct Impact Explorer (`swaps`)**
+   * 6 lifestyle & community swaps (Metro/EV carpool, pre-drafted tadka/induction, ghee/LED diyas, RWA guard electric heaters, damp mop, leaf composting) synced with household impact metrics, $\text{CO}_2$ saved, and monthly rupee savings.
+5. **Community Hub, RWA Multiplier & WhatsApp Broadcasts (`whatsapp`)**
+   * Society-scale calculator (1–200 flats) quantifying collective $\text{PM}_{2.5}$ prevented, $\text{CO}_2$ avoided, clean-air person-days, and clinic visits averted, plus 1-tap WhatsApp circulars.
+6. **GenAI Atmospheric Co-Pilot & Generative UI Studio (`ai`)**
+   * Conversational AI assistant aware of your city, AQI, indoor hacks, eco swaps, and household profile — powered by **Gemini Live** (`gemini-2.5-flash` / `gemini-2.0-flash` with optional browser-stored API key) and a zero-dependency **VayuGuide Atmospheric Engine** offline fallback.
+   * **Interactive Decision Widgets:** `PediatricExposureWidget`, `PurifierBenchWidget`, `DiurnalInversionWidget`, `AsthmaRiskWidget`, and `RwaResolutionWidget`, plus a live **GenUI JSON Spec** inspector.
 
 ---
 
-## 🌟 Core Modules
+## 🚀 Quick Start (Zero-Build Browser ESM)
 
-### 1. Navigation Bar & Live GRAP Watch
-* Sticky top header with city dropdown, real-time AQI badge, and dynamic GRAP stage indicator.
-* Tabbed access to all 5 modules with instant status cues.
+Serve the directory over HTTP (required for ES modules):
 
-### 2. Smog Radar & Household Vulnerability Profile
-* Real-time Outdoor vs. Clean Indoor Living Room comparison cards.
-* Interactive outdoor AQI slider (80 to 500 AQI).
-* Toggles for **School-going children**, **Senior citizens**, **Asthma/COPD**, and **Commute mode** with live health directives.
+```bash
+python3 -m http.server 5173
+```
 
-### 3. AI Time-Blocked Daily Defense Routine
-* **06:00 - 09:00:** Morning Smog Lockdown
-* **08:30 - 10:30:** Commute Defense (Cabin recirculation & N95 nose seal)
-* **13:00 - 15:30:** Solar Ventilation Window (20-min flush)
-* **18:30 - 20:30:** Low-Smoke Evening Cooking (Pre-chimney draft & lid tadka)
-* **21:00 - 06:00:** Night RWA Guard Support & Bedroom Recovery
+Then open `http://localhost:5173` in your browser.
 
-### 4. 3-Column Sustainable Lifestyle Swaps
-* Replacing Agarbatti/Dhoop with pure cow ghee diyas or ultrasonic reed diffusers (-92% PAHs).
-* Replacing guard scrap fires with 800W quartz radiant heaters.
-* Pre-drafting chimney before high-heat mustard oil tadka.
-* Replacing dry grass jhadu with hot water microfibre pocha.
-* Transitioning commute from open 2-wheeler to underground metro.
+To recompile `VayuGuide.esm.js` after editing `VayuGuide.jsx`:
 
-### 5. Frugal DIY Indoor Air Lab & RWA Multiplier
-* Real-time room simulator testing EPDM draft tape, ₹1,800 box-fan HEPA filter, damp pocha, and chimney protocols.
-* Community slider (1 to 200 flats) calculating collective grams of PM2.5 avoided, monthly CO2 saved, and pediatric doctor visits averted.
-* **1-Click WhatsApp Bulletin:** Formatted bilingual broadcast copy with visual toast confirmation.
-
-### 6. ✨ Generative UI Synthesis Engine & Studio
-* **Dynamic Component Dispatcher:** AI queries synthesize stateful React micro-applications on demand rather than static markdown cards.
-* **Component Spectrum:**
-  1. `PediatricExposureWidget`: Dynamic sliders for age (3–16 yrs), commute minutes, transit modes (Open Rickshaw, Bus, Metro, Car), and N95 masks, calculating real-time $\mu\text{g}$ PM2.5 lung deposition.
-  2. `PurifierBenchWidget`: 3-Year Total Cost of Ownership (TCO) calculator comparing ₹1,800 DIY Box-Fan HEPA with ₹9,999 commercial & ₹26,500 premium purifiers.
-  3. `RwaResolutionWidget`: Society circular & WhatsApp broadcast generator with customizable society name and toggles for guard heaters, sweeping bans, and DG restrictions.
-  4. `DiurnalInversionWidget`: 24-Hour diurnal scrubber tracking boundary layer ceiling height (meters) and predicting hourly surface AQI dips.
-  5. `AsthmaRiskWidget`: Clinical PEFR (Peak Expiratory Flow Rate) drop predictor and emergency bronchial action plan.
-* **Inspect GenUI JSON Spec:** Live toggle allowing engineers to inspect the component schema representation transmitted by the GenAI synthesizer.
+```bash
+npx esbuild VayuGuide.jsx --outfile=VayuGuide.esm.js --format=esm --jsx=transform
+```

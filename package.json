@@ -5,7 +5,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "python3 -m http.server 5173",
+    "serve": "python3 -m http.server 4173",
+    "build:esm": "esbuild VayuGuide.jsx --outfile=VayuGuide.esm.js --format=esm --jsx=transform",
     "build": "vite build",
     "preview": "vite preview"
   },
