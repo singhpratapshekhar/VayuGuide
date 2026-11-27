@@ -48,6 +48,20 @@ describe("VayuGuide Accessibility & Core Flows", () => {
     expect(results.violations).toEqual([]);
   });
 
+  it("passes axe-core WCAG audit across all 6 navigation tabs", async () => {
+    const { container } = render(<VayuGuide />);
+    const tabNames = [/Dashboard/i, /Daily Routine/i, /Indoor Hacks/i, /Eco Swaps/i, /Community/i, /AI Co-Pilot/i];
+
+    for (const name of tabNames) {
+      const tab = screen.getAllByRole("tab", { name })[0];
+      fireEvent.click(tab);
+      const results = await axe.run(container, {
+        rules: { "color-contrast": { enabled: false } }
+      });
+      expect(results.violations).toEqual([]);
+    }
+  }, 15000);
+
   it("supports keyboard tab switching and opens/closes CitySearchModal with Escape", async () => {
     render(<VayuGuide />);
 

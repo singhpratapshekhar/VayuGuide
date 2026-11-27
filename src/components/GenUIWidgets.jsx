@@ -25,9 +25,9 @@ export function PediatricExposureWidget({ city, airData }) {
     <div className="p-5 rounded-2xl bg-[#121026] border border-purple-500/25 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h4 className="text-sm font-bold text-white">
+          <h3 className="text-sm font-bold text-white">
             Pediatric Commute Lung Deposition Simulator ({city.name})
-          </h4>
+          </h3>
           <p className="text-[11px] text-slate-300">
             Adjust child age, transit mode, and N95 seal to see exact commute particulate load
           </p>
@@ -150,7 +150,7 @@ export function PurifierBenchWidget() {
 
   return (
     <div className="p-5 rounded-2xl bg-[#121026] border border-purple-500/25 space-y-3">
-      <h4 className="text-sm font-bold text-white">3-Year Total Cost of Ownership (TCO) Benchmark</h4>
+      <h3 className="text-sm font-bold text-white">3-Year Total Cost of Ownership (TCO) Benchmark</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {options.map((opt) => (
           <div
@@ -195,7 +195,7 @@ export function DiurnalInversionWidget({ airData, safestWindowLabel }) {
     <div className="p-5 rounded-2xl bg-[#121026] border border-purple-500/25 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h4 className="text-sm font-bold text-white">24-Hour Boundary Layer &amp; Inversion Scrubber</h4>
+          <h3 className="text-sm font-bold text-white">24-Hour Boundary Layer &amp; Inversion Scrubber</h3>
           <p className="text-[11px] text-slate-300">
             Scrub across today&apos;s cycle — best cross-ventilation window: {safestWindowLabel}
           </p>
@@ -247,7 +247,7 @@ export function AsthmaRiskWidget({ airData, protectedIndoorAQI }) {
   return (
     <div className="p-5 rounded-2xl bg-[#121026] border border-purple-500/25 space-y-3 text-xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-sm font-bold text-white">Respiratory &amp; Bronchial Precaution Protocol</h4>
+        <h3 className="text-sm font-bold text-white">Respiratory &amp; Bronchial Precaution Protocol</h3>
         <span className="px-2.5 py-1 rounded-full bg-red-950/60 border border-red-500/30 text-red-200 font-mono font-bold">
           Estimated Outdoor PEFR Dip: {pefrDropPct}
         </span>
@@ -285,7 +285,7 @@ export function RwaResolutionWidget({ city, airData, societyName, setSocietyName
     <div className="p-5 rounded-2xl bg-[#121026] border border-purple-500/25 space-y-3 text-xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h4 className="text-sm font-bold text-white">RWA Society Circular &amp; Resolution Builder</h4>
+          <h3 className="text-sm font-bold text-white">RWA Society Circular &amp; Resolution Builder</h3>
           <p className="text-[11px] text-slate-300">
             Customize society directives &amp; copy ready-to-broadcast circular
           </p>
