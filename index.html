@@ -7,7 +7,7 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff" />
   <meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://generativelanguage.googleapis.com https://esm.sh; object-src 'none'; base-uri 'self'; form-action 'self';"
+    content="default-src 'self'; script-src 'self' 'sha256-I6rlbVrnq8kxLbmpKr6grHwBPhcr7AelEecTsADxhP0=' https://cdn.tailwindcss.com https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://generativelanguage.googleapis.com https://esm.sh; object-src 'none'; base-uri 'self'; form-action 'self';"
   />
   <title>VayuGuide — Clean Air Co-Pilot for Indian Families</title>
   
@@ -151,14 +151,6 @@
   <div id="root" class="relative z-10"></div>
 
   <!-- Load Compiled ESM Component -->
-  <script type="module">
-    import React from 'react';
-    import ReactDOM from 'react-dom/client';
-    import VayuGuide from './VayuGuide.esm.js';
-
-    const rootElement = document.getElementById('root');
-    const root = ReactDOM.createRoot(rootElement);
-    root.render(React.createElement(VayuGuide));
-  </script>
+  <script type="module" src="./bootstrap.js"></script>
 </body>
 </html>

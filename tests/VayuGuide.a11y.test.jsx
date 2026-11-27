@@ -55,6 +55,7 @@ describe("VayuGuide Accessibility & Core Flows", () => {
     for (const name of tabNames) {
       const tab = screen.getAllByRole("tab", { name })[0];
       fireEvent.click(tab);
+      expect(screen.getByRole("tabpanel")).toBeInTheDocument();
       const results = await axe.run(container, {
         rules: { "color-contrast": { enabled: false } }
       });

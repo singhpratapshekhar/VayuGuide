@@ -58,13 +58,22 @@ Engineered for urban centers across the Indo-Gangetic Plain, industrial belts, a
 Serve the directory over HTTP (required for ES modules):
 
 ```bash
-python3 -m http.server 5173
+pnpm install
+pnpm test        # Run unit, security, API, flow, and axe-core WCAG accessibility tests
+pnpm run build:esm
+pnpm build       # Production Vite bundle -> dist/
+pnpm dev         # Zero-build ESM preview on http://localhost:5173
 ```
 
-Then open `http://localhost:5173` in your browser.
+---
 
-To recompile `VayuGuide.esm.js` after editing `VayuGuide.jsx`:
+## 🏗️ Modular Architecture, Security & Accessibility
 
-```bash
-npx esbuild VayuGuide.jsx --outfile=VayuGuide.esm.js --format=esm --jsx=transform
-```
+* **Modular `src/` layout:**
+  * `src/data/` (`cities.js`, `lifestyleData.js`) — Regional profiles, indoor hacks, eco swaps
+  * `src/utils/` (`aqi.js`, `metrics.js`, `security.js`) — Scientific exposure calculations, input/coordinate sanitization, safe `localStorage`, sliding-window `RateLimiter`, error redaction
+  * `src/services/` (`airQualityApi.js`, `geminiApi.js`) — Open-Meteo & Gemini API clients (`x-goog-api-key` header auth, `AbortController` timeouts, `maxOutputTokens`, prompt-injection separation)
+  * `src/hooks/useVayuGuideState.js` — Centralized state & derived impact calculations
+  * `src/components/` (`Navbar.jsx`, `HeroBanner.jsx`, `CitySearchModal.jsx`, `PrivacyModal.jsx`, `ErrorBoundary.jsx`, `GenUIWidgets.jsx`, `dashboard/*`, `tabs/*`)
+* **Security & Privacy:** Session-memory-only optional Gemini API key (never written to `localStorage` or URLs), strict CSP with SHA-256 script hash (no `'unsafe-inline'` in `script-src`), Netlify HTTP headers (`public/_headers`), `public/.well-known/security.txt`, and one-click **Clear All Local Data** in `PrivacyModal`.
+* **Accessibility (WCAG 2.1 AA):** Skip-to-content link, semantic landmarks (`header`, `nav`, `main`, `footer`), strict `h1 → h2 → h3` hierarchy, ARIA `tablist`/`tab`/`tabpanel` with ArrowLeft/ArrowRight & roving `tabIndex`, `aria-modal` dialogs with Escape & focus restoration, and automated `axe-core` verification across all 6 tabs.
