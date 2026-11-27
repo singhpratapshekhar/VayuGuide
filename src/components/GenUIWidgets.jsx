@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Copy, MessageSquare } from "lucide-react";
+import { Building2, Check, Copy, MessageSquare } from "lucide-react";
 import { sanitizeText } from "../utils/security.js";
 
 /**
@@ -28,12 +28,12 @@ export function PediatricExposureWidget({ city, airData }) {
           <h3 className="text-sm font-bold text-white">
             Pediatric Commute Lung Deposition Simulator ({city.name})
           </h3>
-          <p className="text-[11px] text-slate-300">
+          <p className="text-xs text-slate-300">
             Adjust child age, transit mode, and N95 seal to see exact commute particulate load
           </p>
         </div>
         <div className="px-3 py-1.5 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-right">
-          <span className="text-[10px] font-mono text-emerald-300 block">COMMUTE LUNG DOSE</span>
+          <span className="text-[11px] font-mono text-emerald-300 block">COMMUTE LUNG DOSE</span>
           <span className="font-mono font-black text-lg text-emerald-400">{inhaledUg} µg PM2.5</span>
         </div>
       </div>
@@ -54,7 +54,7 @@ export function PediatricExposureWidget({ city, airData }) {
             value={age}
             aria-valuetext={`${age} years`}
             onChange={(e) => setAge(Number(e.target.value))}
-            className="w-full accent-purple-500"
+            className="w-full accent-purple-500 cursor-pointer"
           />
 
           <div className="flex justify-between pt-1">
@@ -72,7 +72,7 @@ export function PediatricExposureWidget({ city, airData }) {
             value={commuteMins}
             aria-valuetext={`${commuteMins} minutes`}
             onChange={(e) => setCommuteMins(Number(e.target.value))}
-            className="w-full accent-purple-500"
+            className="w-full accent-purple-500 cursor-pointer"
           />
         </div>
 
@@ -90,7 +90,7 @@ export function PediatricExposureWidget({ city, airData }) {
                 type="button"
                 aria-pressed={transit === m.id}
                 onClick={() => setTransit(m.id)}
-                className={`p-2 rounded-xl border text-[11px] font-semibold ${
+                className={`p-2 rounded-xl border text-[11px] font-semibold cursor-pointer ${
                   transit === m.id
                     ? "bg-purple-600/30 border-purple-400 text-white"
                     : "bg-[#181632] border-purple-500/15 text-slate-300"
@@ -105,7 +105,7 @@ export function PediatricExposureWidget({ city, airData }) {
               type="checkbox"
               checked={hasN95}
               onChange={(e) => setHasN95(e.target.checked)}
-              className="accent-purple-600"
+              className="accent-purple-600 cursor-pointer"
             />
             <span className="text-slate-200 font-medium">
               Tight-Seal Child N95 Mask (cuts deposition by 82%: {unmaskedUg} µg → {inhaledUg} µg)
@@ -163,11 +163,11 @@ export function PurifierBenchWidget() {
           >
             <span className="text-xs font-bold text-white block">{opt.name}</span>
             <span className="font-mono font-black text-xl text-purple-300 block">{opt.tco3Yr}</span>
-            <span className="text-[11px] text-slate-300 block">
+            <span className="text-xs text-slate-300 block">
               Upfront: {opt.upfront} • Filter: {opt.filterYr}
             </span>
-            <span className="text-[11px] text-slate-200 block">CADR: {opt.cadr}</span>
-            <span className="text-[10px] font-mono font-bold text-emerald-400 block pt-1">
+            <span className="text-xs text-slate-200 block">CADR: {opt.cadr}</span>
+            <span className="text-[11px] font-mono font-bold text-emerald-400 block pt-1">
               {opt.verdict}
             </span>
           </div>
@@ -196,7 +196,7 @@ export function DiurnalInversionWidget({ airData, safestWindowLabel }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-bold text-white">24-Hour Boundary Layer &amp; Inversion Scrubber</h3>
-          <p className="text-[11px] text-slate-300">
+          <p className="text-xs text-slate-300">
             Scrub across today&apos;s cycle — best cross-ventilation window: {safestWindowLabel}
           </p>
         </div>
@@ -221,15 +221,15 @@ export function DiurnalInversionWidget({ airData, safestWindowLabel }) {
 
       <div className="grid grid-cols-3 gap-2 text-xs">
         <div className="p-3 rounded-xl bg-[#181632] border border-purple-500/15">
-          <span className="text-[10px] text-slate-300 block">Inversion Ceiling</span>
+          <span className="text-[11px] text-slate-300 block">Inversion Ceiling</span>
           <strong className="font-mono text-white">{ceilingHeight} meters</strong>
         </div>
         <div className="p-3 rounded-xl bg-[#181632] border border-purple-500/15">
-          <span className="text-[10px] text-slate-300 block">Projected PM2.5</span>
+          <span className="text-[11px] text-slate-300 block">Projected PM2.5</span>
           <strong className="font-mono text-white">{current.pm25} µg/m³</strong>
         </div>
         <div className="p-3 rounded-xl bg-[#181632] border border-purple-500/15">
-          <span className="text-[10px] text-slate-300 block">Window Advice</span>
+          <span className="text-[11px] text-slate-300 block">Window Advice</span>
           <strong className="text-emerald-400">
             {ceilingHeight > 500 ? "Open 20 mins" : "Keep Sealed"}
           </strong>
@@ -279,16 +279,25 @@ export function RwaResolutionWidget({ city, airData, societyName, setSocietyName
   const [dgRule, setDgRule] = useState(true);
 
   const safeSocietyName = sanitizeText(societyName, 80) || "Our Society";
-  const circularText = `🌿 *${safeSocietyName} — Emergency Clean-Air Resolution*\nCity: ${city.name} (${airData.aqi} AQI)\n${heaters ? "• Sponsor 800W Guard Heaters (₹150/flat) to eliminate 2.4 kg PM2.5/gate/night from scrap fires.\n" : ""}${banSweep ? "• Ban dry broom sweeping; mandate Geela Pocha twice daily.\n" : ""}${dgRule ? "• Enforce GRAP DG-set & leaf-burning restrictions across society premises.\n" : ""}📊 Collective Impact: *${rwaMetrics.totalPmSavedKgMonth} kg PM2.5* & *${rwaMetrics.co2SavedKgMonth} kg CO₂* prevented/month!`;
+  const circularText =
+    `*${safeSocietyName} — Emergency Clean-Air Resolution*\n` +
+    `City: ${city.name} (${airData.aqi} AQI)\n` +
+    `${heaters ? "• Sponsor 800W Guard Heaters (₹150/flat) to eliminate 2.4 kg PM2.5/gate/night from scrap fires.\n" : ""}` +
+    `${banSweep ? "• Ban dry broom sweeping; mandate Geela Pocha twice daily.\n" : ""}` +
+    `${dgRule ? "• Enforce GRAP DG-set & leaf-burning restrictions across society premises.\n" : ""}` +
+    `Collective Impact: *${rwaMetrics.totalPmSavedKgMonth} kg PM2.5* & *${rwaMetrics.co2SavedKgMonth} kg CO2* prevented/month!`;
 
   return (
     <div className="p-5 rounded-2xl bg-[#121026] border border-purple-500/25 space-y-3 text-xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h3 className="text-sm font-bold text-white">RWA Society Circular &amp; Resolution Builder</h3>
-          <p className="text-[11px] text-slate-300">
-            Customize society directives &amp; copy ready-to-broadcast circular
-          </p>
+        <div className="flex items-center gap-2">
+          <Building2 size={16} className="text-purple-300 shrink-0" aria-hidden="true" />
+          <div>
+            <h3 className="text-sm font-bold text-white">RWA Society Circular &amp; Resolution Builder</h3>
+            <p className="text-xs text-slate-300">
+              Customize society directives &amp; copy ready-to-broadcast circular
+            </p>
+          </div>
         </div>
         <div>
           <label htmlFor="rwa-widget-society-name" className="sr-only">
@@ -316,14 +325,14 @@ export function RwaResolutionWidget({ city, airData, societyName, setSocietyName
             type="button"
             aria-pressed={item.val}
             onClick={() => item.set(!item.val)}
-            className={`px-3 py-1.5 rounded-xl border font-semibold ${
+            className={`px-3 py-1.5 rounded-xl border font-semibold inline-flex items-center gap-1.5 cursor-pointer ${
               item.val
                 ? "bg-purple-600/30 border-purple-400 text-white"
                 : "bg-[#181632] border-purple-500/15 text-slate-300"
             }`}
           >
-            {item.val ? "✓ " : ""}
-            {item.label}
+            {item.val && <Check size={12} aria-hidden="true" />}
+            <span>{item.label}</span>
           </button>
         ))}
       </div>
@@ -336,7 +345,7 @@ export function RwaResolutionWidget({ city, airData, societyName, setSocietyName
         <button
           type="button"
           onClick={() => onCopy(circularText)}
-          className="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center justify-center gap-1.5"
+          className="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <Copy size={13} aria-hidden="true" />
           <span>Copy Circular</span>
@@ -345,7 +354,7 @@ export function RwaResolutionWidget({ city, airData, societyName, setSocietyName
           href={`https://wa.me/?text=${encodeURIComponent(circularText)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold flex items-center justify-center gap-1.5"
+          className="flex-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <MessageSquare size={13} aria-hidden="true" />
           <span>Share on WhatsApp</span>

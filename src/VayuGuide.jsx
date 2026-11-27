@@ -21,16 +21,22 @@ function VayuGuideApp() {
   const handleTabKeyDown = (e, currentId, idPrefix = "tab") => {
     const idx = TAB_IDS.indexOf(currentId);
     if (idx === -1) return;
+
+    let targetId = null;
     if (e.key === "ArrowRight") {
-      e.preventDefault();
-      const next = TAB_IDS[(idx + 1) % TAB_IDS.length];
-      s.setActiveTab(next);
-      document.getElementById(`${idPrefix}-${next}`)?.focus();
+      targetId = TAB_IDS[(idx + 1) % TAB_IDS.length];
     } else if (e.key === "ArrowLeft") {
+      targetId = TAB_IDS[(idx - 1 + TAB_IDS.length) % TAB_IDS.length];
+    } else if (e.key === "Home") {
+      targetId = TAB_IDS[0];
+    } else if (e.key === "End") {
+      targetId = TAB_IDS[TAB_IDS.length - 1];
+    }
+
+    if (targetId) {
       e.preventDefault();
-      const prev = TAB_IDS[(idx - 1 + TAB_IDS.length) % TAB_IDS.length];
-      s.setActiveTab(prev);
-      document.getElementById(`${idPrefix}-${prev}`)?.focus();
+      s.setActiveTab(targetId);
+      document.getElementById(`${idPrefix}-${targetId}`)?.focus();
     }
   };
 
@@ -228,7 +234,7 @@ function VayuGuideApp() {
           <button
             type="button"
             onClick={() => s.setIsPrivacyOpen(true)}
-            className="text-purple-300 hover:text-white underline underline-offset-4 font-semibold"
+            className="text-purple-300 hover:text-white underline underline-offset-4 font-semibold cursor-pointer"
           >
             Privacy, Terms &amp; Clear Data
           </button>

@@ -1,15 +1,39 @@
 /**
- * Personalization, direct health/emission impact, daily routine, and RWA multiplier calculations.
+ * Personalization, direct health/emission impact, room ACH, daily routine,
+ * RWA multiplier, and WhatsApp circular calculations.
  * @module utils/metrics
  */
 
-import { COMMUTE_OPTIONS, ECO_SWAPS_DATA, HOME_OPTIONS, INDOOR_HACKS_DATA } from "../data/lifestyleData.js";
+import {
+  COMMUTE_OPTIONS,
+  ECO_SWAPS_DATA,
+  HOME_OPTIONS,
+  INDOOR_HACKS_DATA
+} from "../data/lifestyleData.js";
+import { sanitizeText } from "./security.js";
+
+export const SCIENTIFIC_CONSTANTS = {
+  BERKELEY_EARTH_UG_PER_CIG: 22,
+  ADULT_TIDAL_VOLUME_M3_DAY: 12,
+  WINTER_SMOG_DAYS: 120,
+  WINTER_MONTHS: 4,
+  GUARD_HEATER_PM25_KG_NIGHT: 2.4,
+  DIY_HEPA_CADR_M3_HR: 280,
+  CEILING_HEIGHT_M: 2.74,
+  SQFT_TO_SQM: 0.0929
+};
 
 /**
  * Compute personalized baseline vs. protected indoor/daily exposure, Berkeley Earth
  * cigarette equivalence, mg PM2.5 avoided, and monthly CO₂ savings.
  */
-export function computePersonalMetrics(airData, lifestyle, indoorActions, adoptedSwaps, routineCompleted) {
+export function computePersonalMetrics(
+  airData,
+  lifestyle,
+  indoorActions = {},
+  adoptedSwaps = [],
+  routineCompleted = {}
+) {
   const homeObj = HOME_OPTIONS.find((h) => h.id === lifestyle.homeType) || HOME_OPTIONS[0];
   const commuteObj = COMMUTE_OPTIONS.find((c) => c.id === lifestyle.commuteMode) || COMMUTE_OPTIONS[1];
 
@@ -21,7 +45,7 @@ export function computePersonalMetrics(airData, lifestyle, indoorActions, adopte
     Math.round(airData.aqi * homeObj.infiltration + cookingPenalty + incensePenalty)
   );
 
-  // Sync overlapping indoor hacks & eco swaps cleanly without double-counting
+  // Sync overlapping indoor hacks & eco swaps without double-counting
   const effectiveIndoorActions = {
     ...indoorActions,
     wetMop: Boolean(indoorActions.wetMop || adoptedSwaps.includes("wet_pocha")),
@@ -29,13 +53,11 @@ export function computePersonalMetrics(airData, lifestyle, indoorActions, adopte
     zeroSmokePrayer: Boolean(indoorActions.zeroSmokePrayer || adoptedSwaps.includes("ritual_led"))
   };
 
-  let indoorReduction = 0;
-  INDOOR_HACKS_DATA.forEach((hack) => {
-    if (effectiveIndoorActions[hack.key]) {
-      const scale = Math.min(1.15, Math.max(0.35, airData.aqi / 260));
-      indoorReduction += Math.round(hack.aqiDrop * scale);
-    }
-  });
+  const scale = Math.min(1.15, Math.max(0.35, airData.aqi / 260));
+  const indoorReduction = INDOOR_HACKS_DATA.reduce(
+    (sum, hack) => (effectiveIndoorActions[hack.key] ? sum + Math.round(hack.aqiDrop * scale) : sum),
+    0
+  );
 
   const neighborhoodAmbientRelief =
     (adoptedSwaps.includes("guard_heater") ? 8 : 0) +
@@ -60,20 +82,21 @@ export function computePersonalMetrics(airData, lifestyle, indoorActions, adopte
     Math.round(protectedPM25 * 0.85 + airData.pm25 * 0.15 * effectiveCommuteMult - routineBonus)
   );
 
-  // Berkeley Earth Cigarette Equivalence: PM2.5 / 22
-  const outdoorCigarettes = +(airData.pm25 / 22).toFixed(1);
-  const baselineCigarettes = +(baselineDailyPM25 / 22).toFixed(1);
-  const protectedCigarettes = +(protectedDailyPM25 / 22).toFixed(1);
+  const { BERKELEY_EARTH_UG_PER_CIG, ADULT_TIDAL_VOLUME_M3_DAY, WINTER_SMOG_DAYS, WINTER_MONTHS } =
+    SCIENTIFIC_CONSTANTS;
+
+  const outdoorCigarettes = +(airData.pm25 / BERKELEY_EARTH_UG_PER_CIG).toFixed(1);
+  const baselineCigarettes = +(baselineDailyPM25 / BERKELEY_EARTH_UG_PER_CIG).toFixed(1);
+  const protectedCigarettes = +(protectedDailyPM25 / BERKELEY_EARTH_UG_PER_CIG).toFixed(1);
   const cigarettesAvoided = Math.max(0, +(baselineCigarettes - protectedCigarettes).toFixed(1));
 
-  // Resting adult tidal volume: 12 m³/day -> mg PM2.5 avoided/person/day & 120-day winter season
   const pm25AvoidedMg = Math.max(
     0,
-    +(((baselineDailyPM25 - protectedDailyPM25) * 12) / 1000).toFixed(2)
+    +(((baselineDailyPM25 - protectedDailyPM25) * ADULT_TIDAL_VOLUME_M3_DAY) / 1000).toFixed(2)
   );
   const familyCount = Math.max(1, Math.min(20, Number(lifestyle.familySize || 4)));
   const familyPm25AvoidedMgDay = +(pm25AvoidedMg * familyCount).toFixed(1);
-  const winterFamilyPm25Grams = +((familyPm25AvoidedMgDay * 120) / 1000).toFixed(1);
+  const winterFamilyPm25Grams = +((familyPm25AvoidedMgDay * WINTER_SMOG_DAYS) / 1000).toFixed(1);
 
   const commuteKm = Math.max(2, Math.min(100, Number(lifestyle.commuteKm || 12)));
   const activeSwaps = ECO_SWAPS_DATA.filter((s) => adoptedSwaps.includes(s.id));
@@ -83,12 +106,15 @@ export function computePersonalMetrics(airData, lifestyle, indoorActions, adopte
     }
     return acc + s.co2SavedKgMonth;
   }, 0);
-  const winterCo2SavedKg = totalCo2SavedMonth * 4;
+  const winterCo2SavedKg = totalCo2SavedMonth * WINTER_MONTHS;
   const totalSwapPmDrop = activeSwaps.reduce((acc, s) => acc + s.pm25DropUg, 0);
 
   const exposureDropPct =
     baselineDailyPM25 > 0
-      ? Math.max(0, Math.min(88, Math.round(((baselineDailyPM25 - protectedDailyPM25) / baselineDailyPM25) * 100)))
+      ? Math.max(
+          0,
+          Math.min(88, Math.round(((baselineDailyPM25 - protectedDailyPM25) / baselineDailyPM25) * 100))
+        )
       : 0;
 
   return {
@@ -115,6 +141,25 @@ export function computePersonalMetrics(airData, lifestyle, indoorActions, adopte
 }
 
 /**
+ * Compute bedroom volume, Air Changes Per Hour (ACH), and clean-down cycle time
+ * for a 280 m³/hr DIY Box-Fan + HEPA H13 unit.
+ * @param {number} roomSqFt
+ */
+export function computeRoomAchStats(roomSqFt) {
+  const safeSqFt = Math.max(60, Math.min(1000, Number(roomSqFt || 150)));
+  const volumeM3 = Math.max(
+    15,
+    Math.round(safeSqFt * SCIENTIFIC_CONSTANTS.SQFT_TO_SQM * SCIENTIFIC_CONSTANTS.CEILING_HEIGHT_M)
+  );
+  const ach = +(SCIENTIFIC_CONSTANTS.DIY_HEPA_CADR_M3_HR / volumeM3).toFixed(1);
+  const cleanCycleMins = Math.max(
+    8,
+    Math.round((volumeM3 / SCIENTIFIC_CONSTANTS.DIY_HEPA_CADR_M3_HR) * 60)
+  );
+  return { volumeM3, ach, cleanCycleMins };
+}
+
+/**
  * Build 5 time-blocked low-emission daily routine steps synchronized to diurnal inversion.
  */
 export function buildDailyRoutineBlocks(city, airData, lifestyle, safestWindow) {
@@ -128,14 +173,14 @@ export function buildDailyRoutineBlocks(city, airData, lifestyle, safestWindow) 
       ? "Move running/cardio indoors; deep inhalation above 200 AQI drives fine PM2.5 past nasal cilia."
       : "Keep outdoor exercise light and avoid main arterial roads before 9:30 AM.";
 
-  const commuteGuidance =
-    lifestyle.commuteMode === "two_wheeler"
-      ? "High-priority swap: take Metro/carpool today if possible, or wear a sealed N95 + wraparound glasses."
-      : lifestyle.commuteMode === "auto_bus"
-      ? "Seat children away from open side curtains; ensure nose-clip N95 seal before boarding."
-      : lifestyle.commuteMode === "metro_car"
-      ? "Switch car climate control to Internal Recirculate (never fresh-air intake in traffic)."
-      : "Keep work desk near sealed window away from main-road cross-drafts.";
+  const commuteGuidanceMap = {
+    two_wheeler:
+      "High-priority swap: take Metro/carpool today if possible, or wear a sealed N95 + wraparound glasses.",
+    auto_bus: "Seat children away from open side curtains; ensure nose-clip N95 seal before boarding.",
+    metro_car: "Switch car climate control to Internal Recirculate (never fresh-air intake in traffic).",
+    wfh: "Keep work desk near sealed window away from main-road cross-drafts."
+  };
+  const commuteGuidance = commuteGuidanceMap[lifestyle.commuteMode] || commuteGuidanceMap.wfh;
 
   const cookingGuidance =
     lifestyle.cookingStyle === "gas_tadka"
@@ -180,7 +225,7 @@ export function buildDailyRoutineBlocks(city, airData, lifestyle, safestWindow) 
     },
     {
       id: "evening_cooking",
-      time: "18:30 – 20:30 PM",
+      time: "06:30 – 08:30 PM",
       title: "Low-Smoke Kitchen & Ritual Routine",
       category: "Indoor Source Control",
       action: cookingGuidance,
@@ -190,7 +235,7 @@ export function buildDailyRoutineBlocks(city, airData, lifestyle, safestWindow) 
     },
     {
       id: "night_recovery",
-      time: "21:00 – 06:00 AM",
+      time: "09:00 PM – 06:00 AM",
       title: "Night Bedroom Seal & RWA Guard Care",
       category: "8-Hour Lung Recovery",
       action: `${homeSealNote} Confirm society security guards use electric heaters instead of scrap wood fires.`,
@@ -204,11 +249,13 @@ export function buildDailyRoutineBlocks(city, airData, lifestyle, safestWindow) 
 /**
  * Compute RWA society-scale impact metrics from flat count and active pledges.
  */
-export function computeRwaMetrics(flatCount, rwaPledges, totalCo2SavedMonth, exposureDropPct) {
+export function computeRwaMetrics(flatCount, rwaPledges = {}, totalCo2SavedMonth = 0, exposureDropPct = 0) {
   const safeFlats = Math.max(1, Math.min(500, Number(flatCount || 40)));
   const gates = Math.max(1, Math.ceil(safeFlats / 30));
-  const heaterPmSavedKgMonth = rwaPledges.guardHeaters ? gates * 2.4 * 30 : 0;
-  const dampDustSavedKgMonth = rwaPledges.dampSweep ? safeFlats * 0.18 : 0;
+  const heaterPmSavedKgMonth = rwaPledges.guardHeaters
+    ? gates * SCIENTIFIC_CONSTANTS.GUARD_HEATER_PM25_KG_NIGHT * 30
+    : 0;
+  const dampDustSavedKgMonth = rwaPledges.dampMopping ? safeFlats * 0.18 : 0;
   const leafPmSavedKgMonth = rwaPledges.noLeafBurning ? gates * 12 : 0;
   const idlingPmSavedKgMonth = rwaPledges.noIdling ? safeFlats * 0.12 : 0;
 
@@ -236,4 +283,65 @@ export function computeRwaMetrics(flatCount, rwaPledges, totalCo2SavedMonth, exp
     cleanAirPersonDays,
     doctorVisitsAverted
   };
+}
+
+/**
+ * Build ready-to-send WhatsApp society and family broadcast circulars.
+ */
+export function buildWhatsAppBroadcasts({
+  societyName,
+  flatCount,
+  city,
+  effectiveAirData,
+  aqiCategory,
+  rwaPledges,
+  rwaMetrics,
+  metrics,
+  safestWindowLabel
+}) {
+  const safeSociety = sanitizeText(societyName, 80) || "Our Society";
+  const activeCount = Object.values(rwaPledges).filter(Boolean).length;
+
+  return [
+    {
+      id: "rwaCircular",
+      title: "Full RWA Clean-Air Resolution Circular",
+      purpose: `Mobilize all ${flatCount} flats in ${safeSociety} with quantified pollution impact`,
+      text:
+        `*${safeSociety} — Winter Clean-Air Action Circular*\n` +
+        `City: ${city.name} AQI: *${effectiveAirData.aqi} (${aqiCategory.status})*\n\n` +
+        `By adopting ${activeCount} society-wide steps across ${flatCount} flats:\n` +
+        `- *${rwaMetrics.totalPmSavedKgMonth} kg* of toxic PM2.5 prevented/month\n` +
+        `- *${rwaMetrics.co2SavedKgMonth} kg* CO2 saved monthly\n\n` +
+        `Proposed Actions:\n` +
+        `${rwaPledges.guardHeaters ? "• Pool ₹150/flat for 800W guard heaters (stops 2.4 kg PM2.5/gate/night from scrap fires)\n" : ""}` +
+        `${rwaPledges.dampMopping ? "• Mandate damp mopping (Geela Pocha) instead of dry jhadu in lobbies\n" : ""}` +
+        `${rwaPledges.noLeafBurning ? "• Strict ban on dry leaf & waste burning; compost garden litter\n" : ""}` +
+        `${rwaPledges.noIdling ? "• Enforce engine-off No-Idling rule at society entry gates\n" : ""}` +
+        `\nReply 'YES' to co-sponsor!`
+    },
+    {
+      id: "moppingNotice",
+      title: "Estate Manager: Damp Mopping Mandate",
+      purpose: "Stop dry broom micro-dust resuspension in corridors & basements",
+      text:
+        `*NOTICE TO ESTATE MANAGER & HOUSEKEEPING (${safeSociety})*\n` +
+        `Due to ${aqiCategory.status} air quality in ${city.name} (AQI ${effectiveAirData.aqi}):\n` +
+        `1. STOP all dry broom sweeping (Jhadu) in tower lobbies and corridors — it kicks fine PM2.5 back into children's lungs.\n` +
+        `2. MANDATE damp mopping (Geela Pocha) twice daily.\n` +
+        `Thank you for protecting our building's indoor air!`
+    },
+    {
+      id: "familyWarning",
+      title: "Family Smog Alert & Safe Routine",
+      purpose: "Alert family group with today's cigarette equivalence & safest window",
+      text:
+        `*Family Air Alert (${city.name} AQI ${effectiveAirData.aqi})*\n` +
+        `Outdoor air today = smoking *${metrics.outdoorCigarettes} cigarettes/day*.\n` +
+        `• Morning walk: Shift indoors until *${safestWindowLabel}* (safest airing window).\n` +
+        `• Commute: Wear tight-fit N95 & keep car vents on Recirculate.\n` +
+        `• Evening: Run kitchen chimney 5 mins before tadka & skip agarbatti smoke.\n` +
+        `Stay safe!`
+    }
+  ];
 }

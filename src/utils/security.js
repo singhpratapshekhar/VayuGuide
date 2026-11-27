@@ -1,10 +1,12 @@
 /**
- * Security utilities: input sanitization, coordinate validation, safe storage,
- * sliding-window rate limiting, AI output sanitization, and error redaction.
+ * Security utilities: input sanitization, coordinate validation, prototype-pollution-safe
+ * storage, sliding-window rate limiting, AI output sanitization, and error redaction.
  * @module utils/security
  */
 
 const FORBIDDEN_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+const SECRET_KEY_NAME_RE = /key|token|secret|password/i;
+const SECRET_VALUE_RE = /AIza[0-9A-Za-z\-_]{16,}|sk-[0-9A-Za-z\-_]{10,}|Bearer\s+[0-9A-Za-z\-_.]{8,}/i;
 
 /**
  * Strip control characters and angle brackets, normalize whitespace, and clamp length.
@@ -29,6 +31,9 @@ export function sanitizeText(input, maxLength = 200) {
  * @returns {{ valid: boolean, lat: number | null, lon: number | null }}
  */
 export function validateCoordinates(lat, lon) {
+  if (lat === null || lat === undefined || lon === null || lon === undefined || lat === "" || lon === "") {
+    return { valid: false, lat: null, lon: null };
+  }
   const numLat = Number(lat);
   const numLon = Number(lon);
   const valid =
@@ -45,24 +50,40 @@ export function validateCoordinates(lat, lon) {
 }
 
 /**
- * Strip prototype-pollution keys from parsed objects.
- * @param {unknown} obj
- * @returns {unknown}
+ * Validate an optional API key string to prevent HTTP header injection or control characters.
+ * @param {unknown} key
+ * @returns {boolean}
  */
-function stripUnsafeKeys(obj) {
-  if (!obj || typeof obj !== "object" || Array.isArray(obj)) return obj;
-  const clean = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (!FORBIDDEN_KEYS.has(k)) {
-      clean[k] = v;
-    }
-  }
-  return clean;
+export function isValidApiKeyFormat(key) {
+  if (typeof key !== "string") return false;
+  const trimmed = key.trim();
+  if (trimmed.length < 10 || trimmed.length > 256) return false;
+  return /^[\x21-\x7E]+$/.test(trimmed);
 }
 
 /**
- * Safely read and validate JSON from localStorage.
- * Never used for secrets or API keys.
+ * Recursively strip prototype-pollution keys from parsed JSON values.
+ * @param {unknown} value
+ * @returns {unknown}
+ */
+export function sanitizeObjectDeep(value) {
+  if (Array.isArray(value)) {
+    return value.map(sanitizeObjectDeep);
+  }
+  if (value && typeof value === "object") {
+    const clean = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (!FORBIDDEN_KEYS.has(k)) {
+        clean[k] = sanitizeObjectDeep(v);
+      }
+    }
+    return clean;
+  }
+  return value;
+}
+
+/**
+ * Safely read and schema-validate JSON from localStorage.
  * @template T
  * @param {string} key
  * @param {T} fallback
@@ -74,7 +95,7 @@ export function loadStored(key, fallback, validator) {
     if (typeof localStorage === "undefined") return fallback;
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
-    const parsed = stripUnsafeKeys(JSON.parse(raw));
+    const parsed = sanitizeObjectDeep(JSON.parse(raw));
     if (validator && !validator(parsed)) return fallback;
     if (fallback && typeof fallback === "object" && !Array.isArray(fallback)) {
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return fallback;
@@ -88,27 +109,31 @@ export function loadStored(key, fallback, validator) {
 
 /**
  * Safely persist non-sensitive preferences to localStorage.
- * Blocks storing any key containing secret/token/api_key/key patterns.
+ * Refuses key names or serialized values resembling secrets/API keys.
  * @param {string} key
  * @param {unknown} value
  */
 export function saveStored(key, value) {
-  if (/key|token|secret|password/i.test(key)) {
+  if (SECRET_KEY_NAME_RE.test(key)) {
     throw new Error("Refusing to persist sensitive key material in localStorage.");
+  }
+  const serialized = JSON.stringify(value);
+  if (SECRET_VALUE_RE.test(serialized)) {
+    throw new Error("Refusing to persist credential-like values in localStorage.");
   }
   try {
     if (typeof localStorage !== "undefined") {
-      localStorage.setItem(key, JSON.stringify(value));
+      localStorage.setItem(key, serialized);
     }
   } catch {
-    // Ignore storage quota or private-mode errors
+    // Ignore storage quota or private-mode restrictions
   }
 }
 
 /**
  * Remove all VayuGuide keys from localStorage (user data deletion control).
  * @param {string} [prefix="vg_"]
- * @returns {number} Number of keys removed
+ * @returns {number}
  */
 export function clearAllStored(prefix = "vg_") {
   try {
@@ -129,12 +154,6 @@ export function clearAllStored(prefix = "vg_") {
  * Sliding-window client-side rate limiter with minimum cooldown.
  */
 export class RateLimiter {
-  /**
-   * @param {object} opts
-   * @param {number} opts.maxRequests
-   * @param {number} opts.windowMs
-   * @param {number} [opts.cooldownMs=0]
-   */
   constructor({ maxRequests, windowMs, cooldownMs = 0 }) {
     this.maxRequests = maxRequests;
     this.windowMs = windowMs;
@@ -184,7 +203,7 @@ export function sanitizeAiOutput(text) {
 export function sanitizeErrorMessage(err) {
   const raw = err instanceof Error ? err.message : String(err || "Unexpected error");
   return raw
-    .replace(/AIza[0-9A-Za-z\-_]{20,}/g, "[REDACTED_KEY]")
+    .replace(/AIza[0-9A-Za-z\-_]{16,}/g, "[REDACTED_KEY]")
     .replace(/sk-[0-9A-Za-z\-_]{10,}/g, "[REDACTED_KEY]")
     .replace(/Bearer\s+[0-9A-Za-z\-_.]+/gi, "Bearer [REDACTED]")
     .replace(/([?&](?:key|token|api_key)=)[^&\s]+/gi, "$1[REDACTED]")

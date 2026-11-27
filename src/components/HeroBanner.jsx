@@ -8,14 +8,14 @@ import { POPULAR_CITIES } from "../data/cities.js";
 export default function HeroBanner({ city, setCity, onOpenSearch }) {
   return (
     <section className="relative pt-7 pb-5 px-4 text-center max-w-4xl mx-auto">
-      <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 text-xs font-semibold mb-4 backdrop-blur-md shadow-[0_0_20px_rgba(147,51,234,0.2)]">
-        <Sparkles size={13} className="text-purple-400" aria-hidden="true" />
+      <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-200 text-xs font-semibold mb-4 backdrop-blur-md shadow-[0_0_20px_rgba(147,51,234,0.2)]">
+        <Sparkles size={13} className="text-purple-300" aria-hidden="true" />
         <span>GenAI Smog Navigation • Location &amp; Lifestyle Tailored</span>
       </div>
 
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-black font-display tracking-tight text-white leading-tight">
         Navigate Winter Smog With <br className="hidden sm:inline" />
-        <span className="bg-gradient-to-r from-purple-400 via-violet-300 to-indigo-300 bg-clip-text text-transparent">
+        <span className="bg-gradient-to-r from-purple-300 via-violet-300 to-indigo-300 bg-clip-text text-transparent">
           Precision Air Intelligence
         </span>
       </h1>
@@ -38,7 +38,7 @@ export default function HeroBanner({ city, setCity, onOpenSearch }) {
               type="button"
               aria-pressed={isSelected}
               onClick={() => setCity(c)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 isSelected
                   ? "bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.7)] border border-purple-400"
                   : "bg-[#111024] text-slate-300 hover:text-white hover:bg-[#191836] border border-purple-500/15"
@@ -51,7 +51,7 @@ export default function HeroBanner({ city, setCity, onOpenSearch }) {
         <button
           type="button"
           onClick={onOpenSearch}
-          className="px-3 py-1 rounded-full text-xs font-semibold bg-[#111024] text-purple-300 hover:text-purple-200 hover:bg-[#191836] border border-purple-500/25 flex items-center gap-1"
+          className="px-3 py-1 rounded-full text-xs font-semibold bg-[#111024] text-purple-300 hover:text-purple-200 hover:bg-[#191836] border border-purple-500/25 flex items-center gap-1 cursor-pointer"
         >
           <Search size={11} aria-hidden="true" />
           <span>More Cities</span>

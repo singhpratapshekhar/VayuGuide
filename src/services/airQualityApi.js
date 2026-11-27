@@ -1,36 +1,64 @@
 /**
  * Open-Meteo Air Quality & Geocoding API clients with coordinate validation,
- * rate limiting, and AbortController timeouts.
+ * rate limiting, finite value clamping, and AbortController timeouts.
  * @module services/airQualityApi
  */
 
+import { INITIAL_AIR_DATA } from "../data/lifestyleData.js";
 import { RateLimiter, sanitizeText, validateCoordinates } from "../utils/security.js";
 
 const DEFAULT_TIMEOUT_MS = 10000;
 const searchRateLimiter = new RateLimiter({ maxRequests: 20, windowMs: 60000, cooldownMs: 250 });
 
-const FALLBACK_TREND = [
-  { time: "6 AM", aqi: 285, pm25: 165 },
-  { time: "9 AM", aqi: 240, pm25: 130 },
-  { time: "12 PM", aqi: 155, pm25: 85 },
-  { time: "3 PM", aqi: 130, pm25: 68 },
-  { time: "6 PM", aqi: 195, pm25: 110 },
-  { time: "9 PM", aqi: 250, pm25: 145 }
-];
+function clampMetric(value, fallback, min = 0, max = 5000) {
+  const num = value === null || value === undefined ? NaN : Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(num)));
+}
 
-/**
- * Fetch with an AbortController timeout.
- * @param {string} url
- * @param {RequestInit} [options={}]
- * @param {number} [timeoutMs=DEFAULT_TIMEOUT_MS]
- */
+function buildHourlyTrend(hourly) {
+  if (!Array.isArray(hourly?.time) || !Array.isArray(hourly?.us_aqi)) {
+    return INITIAL_AIR_DATA.trend;
+  }
+
+  const indices =
+    hourly.time.length >= 22
+      ? [6, 9, 12, 15, 18, 21]
+      : Array.from({ length: Math.ceil(Math.min(24, hourly.time.length) / 3) }, (_, k) => k * 3);
+
+  const trend = indices
+    .filter((idx) => idx < hourly.time.length)
+    .map((idx) => {
+      const date = new Date(hourly.time[idx]);
+      const label = Number.isNaN(date.getTime())
+        ? `${idx}:00`
+        : date.toLocaleTimeString("en-US", { hour: "numeric", hour12: true });
+      return {
+        time: label,
+        aqi: clampMetric(hourly.us_aqi[idx], 150, 0, 500),
+        pm25: clampMetric(hourly.pm2_5?.[idx], 75, 0, 1000)
+      };
+    });
+
+  return trend.length > 0 ? trend : INITIAL_AIR_DATA.trend;
+}
+
 async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const controller = new AbortController();
+  const externalSignal = options.signal;
+  const onExternalAbort = () => controller.abort();
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort();
+    else externalSignal.addEventListener("abort", onExternalAbort, { once: true });
+  }
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     return await fetch(url, { ...options, signal: controller.signal });
   } finally {
     clearTimeout(timer);
+    if (externalSignal) {
+      externalSignal.removeEventListener("abort", onExternalAbort);
+    }
   }
 }
 
@@ -38,69 +66,61 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT_M
  * Fetch live air quality and hourly diurnal trend from Open-Meteo.
  * @param {number} lat
  * @param {number} lon
+ * @param {object} [options]
+ * @param {AbortSignal} [options.signal]
  */
-export async function fetchLiveAirQuality(lat, lon) {
+export async function fetchLiveAirQuality(lat, lon, options = {}) {
   const coords = validateCoordinates(lat, lon);
   if (!coords.valid) {
     throw new Error("Invalid coordinates supplied for air quality lookup");
   }
 
-  const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${coords.lat}&longitude=${coords.lon}&current=us_aqi,pm10,pm2_5,nitrogen_dioxide,sulphur_dioxide,ozone,carbon_monoxide&hourly=us_aqi,pm2_5&forecast_days=1`;
-  const res = await fetchWithTimeout(url);
-  if (!res.ok) throw new Error("Air quality data fetch failed");
-  const data = await res.json();
-  const current = data?.current || {};
-  const hourly = data?.hourly || {};
+  const url =
+    `https://air-quality-api.open-meteo.com/v1/air-quality` +
+    `?latitude=${coords.lat}&longitude=${coords.lon}` +
+    `&current=us_aqi,pm10,pm2_5,nitrogen_dioxide,sulphur_dioxide,ozone,carbon_monoxide` +
+    `&hourly=us_aqi,pm2_5&forecast_days=1`;
 
-  const trend = [];
-  if (Array.isArray(hourly.time) && Array.isArray(hourly.us_aqi) && hourly.time.length >= 22) {
-    const targetHours = [6, 9, 12, 15, 18, 21];
-    for (const idx of targetHours) {
-      const date = new Date(hourly.time[idx]);
-      trend.push({
-        time: date.toLocaleTimeString("en-US", { hour: "numeric", hour12: true }),
-        aqi: Math.round(hourly.us_aqi[idx] || 150),
-        pm25: Math.round(hourly.pm2_5?.[idx] || 75)
-      });
-    }
-  } else if (Array.isArray(hourly.time) && Array.isArray(hourly.us_aqi)) {
-    for (let i = 0; i < Math.min(24, hourly.time.length); i += 3) {
-      const date = new Date(hourly.time[i]);
-      trend.push({
-        time: date.toLocaleTimeString("en-US", { hour: "numeric", hour12: true }),
-        aqi: Math.round(hourly.us_aqi[i] || 150),
-        pm25: Math.round(hourly.pm2_5?.[i] || 75)
-      });
-    }
+  const res = await fetchWithTimeout(url, { signal: options.signal });
+  if (!res.ok) {
+    throw new Error(`Air quality service returned HTTP ${res.status}`);
   }
 
+  const data = await res.json();
+  const current = data?.current || {};
+
   return {
-    aqi: Math.round(current.us_aqi || 160),
-    pm25: Math.round(current.pm2_5 || 75),
-    pm10: Math.round(current.pm10 || 110),
-    no2: Math.round(current.nitrogen_dioxide || 22),
-    so2: Math.round(current.sulphur_dioxide || 12),
-    o3: Math.round(current.ozone || 35),
-    co: Math.round(current.carbon_monoxide || 400),
+    aqi: clampMetric(current.us_aqi, 160, 0, 500),
+    pm25: clampMetric(current.pm2_5, 75, 0, 1000),
+    pm10: clampMetric(current.pm10, 110, 0, 2000),
+    no2: clampMetric(current.nitrogen_dioxide, 22, 0, 1000),
+    so2: clampMetric(current.sulphur_dioxide, 12, 0, 1000),
+    o3: clampMetric(current.ozone, 35, 0, 1000),
+    co: clampMetric(current.carbon_monoxide, 400, 0, 10000),
     updatedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    trend: trend.length > 0 ? trend : FALLBACK_TREND
+    trend: buildHourlyTrend(data?.hourly)
   };
 }
 
 /**
  * Search cities via Open-Meteo Geocoding API with input sanitization and rate limiting.
  * @param {string} rawQuery
+ * @param {object} [options]
+ * @param {RateLimiter} [options.rateLimiter]
+ * @param {AbortSignal} [options.signal]
  */
-export async function searchCitiesAPI(rawQuery) {
+export async function searchCitiesAPI(rawQuery, options = {}) {
   const query = sanitizeText(rawQuery, 80);
   if (query.length < 2) return [];
 
-  const limit = searchRateLimiter.tryAcquire();
+  const limiter = options.rateLimiter || searchRateLimiter;
+  const limit = limiter.tryAcquire();
   if (!limit.allowed) return [];
 
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&language=en&format=json`;
-  const res = await fetchWithTimeout(url);
+  const res = await fetchWithTimeout(url, { signal: options.signal });
   if (!res.ok) return [];
+
   const data = await res.json();
   return (data?.results || [])
     .filter((item) => validateCoordinates(item.latitude, item.longitude).valid)

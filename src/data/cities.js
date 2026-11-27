@@ -1,5 +1,5 @@
 /**
- * Popular Indian urban centers and location profile inference helpers.
+ * Curated Indian urban centers and location profile inference helpers.
  * @module data/cities
  */
 
@@ -106,7 +106,7 @@ export const POPULAR_CITIES = [
 ];
 
 /**
- * Infer smog drivers and local clean-air guidance for any city based on coordinates and pollutants.
+ * Infer smog drivers and local clean-air guidance from city metadata or pollutant ratios.
  * @param {object} city
  * @param {object} airData
  * @returns {{ smogDrivers: string, localTip: string, regionType: string }}
@@ -119,6 +119,7 @@ export function inferLocationProfile(city, airData) {
       regionType: city.regionType || "urban"
     };
   }
+
   const pm25 = Number(airData?.pm25 ?? 0);
   const pm10 = Number(airData?.pm10 ?? 1);
   const no2 = Number(airData?.no2 ?? 0);

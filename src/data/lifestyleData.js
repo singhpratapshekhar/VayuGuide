@@ -1,7 +1,26 @@
 /**
- * Household lifestyle defaults, commute/home options, indoor hacks, and eco swaps data.
+ * Default household profile, commute/home options, indoor air hacks, and eco swaps data.
  * @module data/lifestyleData
  */
+
+export const INITIAL_AIR_DATA = {
+  aqi: 285,
+  pm25: 165,
+  pm10: 220,
+  no2: 48,
+  so2: 18,
+  o3: 38,
+  co: 520,
+  updatedAt: "Baseline",
+  trend: [
+    { time: "6 AM", aqi: 310, pm25: 190 },
+    { time: "9 AM", aqi: 260, pm25: 150 },
+    { time: "12 PM", aqi: 165, pm25: 90 },
+    { time: "3 PM", aqi: 140, pm25: 75 },
+    { time: "6 PM", aqi: 210, pm25: 125 },
+    { time: "9 PM", aqi: 275, pm25: 160 }
+  ]
+};
 
 export const DEFAULT_LIFESTYLE = {
   hasKids: true,
@@ -9,10 +28,33 @@ export const DEFAULT_LIFESTYLE = {
   hasAsthma: false,
   familySize: 4,
   commuteKm: 12,
-  commuteMode: "auto_bus", // two_wheeler | auto_bus | metro_car | wfh
-  homeType: "ground_roadside", // ground_roadside | high_rise | independent
-  cookingStyle: "gas_tadka", // gas_tadka | induction_chimney
+  commuteMode: "auto_bus",
+  homeType: "ground_roadside",
+  cookingStyle: "gas_tadka",
   burnsIncense: true
+};
+
+export const DEFAULT_INDOOR_ACTIONS = {
+  doorTape: true,
+  wetMop: true,
+  hepaFilter: false,
+  kitchenExhaust: true,
+  zeroSmokePrayer: false,
+  plantCarbon: false
+};
+
+export const DEFAULT_ADOPTED_SWAPS = ["wet_pocha", "cooking_induction"];
+
+export const DEFAULT_ROUTINE_COMPLETED = {
+  morning_lockdown: true,
+  solar_ventilation: true
+};
+
+export const DEFAULT_RWA_PLEDGES = {
+  guardHeaters: true,
+  dampMopping: true,
+  noLeafBurning: true,
+  noIdling: false
 };
 
 export const COMMUTE_OPTIONS = [
@@ -25,7 +67,7 @@ export const COMMUTE_OPTIONS = [
 export const HOME_OPTIONS = [
   { id: "ground_roadside", label: "Low-Floor / Roadside", infiltration: 0.78 },
   { id: "independent", label: "Independent House", infiltration: 0.72 },
-  { id: "high_rise", label: "High-Rise (6th+ Floor)", infiltration: 0.62 }
+  { id: "high_rise", label: "High-Rise (6th+)", infiltration: 0.62 }
 ];
 
 export const ECO_SWAPS_DATA = [

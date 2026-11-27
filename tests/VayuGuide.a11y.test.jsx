@@ -4,7 +4,17 @@ import axe from "axe-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import VayuGuide from "../src/VayuGuide.jsx";
 
-describe("VayuGuide Accessibility & Core Flows", () => {
+async function runAxe(container) {
+  const results = await axe.run(container, {
+    rules: {
+      // jsdom does not compute external Tailwind stylesheet colors; contrast tokens are audited in design/CSS
+      "color-contrast": { enabled: false }
+    }
+  });
+  expect(results.violations).toEqual([]);
+}
+
+describe("VayuGuide Accessibility & Privacy Controls", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
@@ -30,7 +40,7 @@ describe("VayuGuide Accessibility & Core Flows", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders semantic landmarks, skip link, and passes axe-core WCAG audit with 0 violations", async () => {
+  it("renders semantic landmarks, skip link, h1 heading, and passes axe-core across all 6 tabs", async () => {
     const { container } = render(<VayuGuide />);
 
     expect(screen.getByText("Skip to main content")).toBeInTheDocument();
@@ -39,42 +49,24 @@ describe("VayuGuide Accessibility & Core Flows", () => {
     expect(screen.getByRole("contentinfo")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
 
-    const results = await axe.run(container, {
-      rules: {
-        // jsdom does not compute external Tailwind stylesheet colors, so color-contrast is checked manually/in browser
-        "color-contrast": { enabled: false }
-      }
-    });
-    expect(results.violations).toEqual([]);
-  });
-
-  it("passes axe-core WCAG audit across all 6 navigation tabs", async () => {
-    const { container } = render(<VayuGuide />);
     const tabNames = [/Dashboard/i, /Daily Routine/i, /Indoor Hacks/i, /Eco Swaps/i, /Community/i, /AI Co-Pilot/i];
-
     for (const name of tabNames) {
       const tab = screen.getAllByRole("tab", { name })[0];
       fireEvent.click(tab);
       expect(screen.getByRole("tabpanel")).toBeInTheDocument();
-      const results = await axe.run(container, {
-        rules: { "color-contrast": { enabled: false } }
-      });
-      expect(results.violations).toEqual([]);
+      await runAxe(container);
     }
-  }, 15000);
+  }, 20000);
 
-  it("supports keyboard tab switching and opens/closes CitySearchModal with Escape", async () => {
-    render(<VayuGuide />);
-
-    const routineTab = screen.getAllByRole("tab", { name: /Daily Routine/i })[0];
-    fireEvent.click(routineTab);
-    expect(screen.getByRole("tabpanel")).toHaveAttribute("id", "panel-routine");
-
+  it("passes axe-core with CitySearchModal open and restores focus on Escape", async () => {
+    const { container } = render(<VayuGuide />);
     const cityBtn = screen.getByRole("button", { name: /Select city, currently/i });
+    cityBtn.focus();
     fireEvent.click(cityBtn);
 
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveAttribute("aria-modal", "true");
+    await runAxe(container);
 
     fireEvent.keyDown(window, { key: "Escape" });
     await waitFor(() => {
@@ -82,21 +74,19 @@ describe("VayuGuide Accessibility & Core Flows", () => {
     });
   });
 
-  it("opens PrivacyModal and clears localStorage on Clear All Local Data without storing Gemini key", async () => {
-    render(<VayuGuide />);
+  it("opens PrivacyModal, passes axe-core, never stores Gemini key, and clears localStorage", async () => {
+    const { container } = render(<VayuGuide />);
 
-    const aiTab = screen.getAllByRole("tab", { name: /AI Co-Pilot/i })[0];
-    fireEvent.click(aiTab);
-
+    fireEvent.click(screen.getAllByRole("tab", { name: /AI Co-Pilot/i })[0]);
     const keyInput = screen.getByLabelText(/Optional Gemini API Key/i);
     fireEvent.change(keyInput, { target: { value: "AIzaSessionOnlyTest12345" } });
     fireEvent.click(screen.getByRole("button", { name: /^Save$/i }));
 
-    // Ensure secret is NEVER written to localStorage
     expect(localStorage.getItem("vg_gemini_key")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: /Privacy, Terms & Clear Data/i }));
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    await runAxe(container);
 
     fireEvent.click(screen.getByRole("button", { name: /Clear All Local Data/i }));
     await waitFor(() => {

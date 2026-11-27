@@ -7,150 +7,23 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff" />
   <meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'sha256-I6rlbVrnq8kxLbmpKr6grHwBPhcr7AelEecTsADxhP0=' https://cdn.tailwindcss.com https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://generativelanguage.googleapis.com https://esm.sh; object-src 'none'; base-uri 'self'; form-action 'self';"
+    content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://generativelanguage.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+  />
+  <meta
+    name="description"
+    content="VayuGuide — GenAI-powered clean-air co-pilot for Indian families and RWAs navigating winter smog with tailored routines, indoor air hacks, and measurable impact."
   />
   <title>VayuGuide — Clean Air Co-Pilot for Indian Families</title>
-  
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Premium Fonts: Outfit, Plus Jakarta Sans, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            display: ['"Outfit"', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
-          },
-          colors: {
-            obsidian: {
-              950: '#06060C',
-              900: '#090914',
-              850: '#0D0C1D',
-              800: '#121124',
-              750: '#181730',
-              700: '#1F1E3D',
-            },
-            neonViolet: '#8B5CF6',
-            neonPurple: '#A855F7',
-          }
-        }
-      }
-    }
-  </script>
-
-  <style>
-    :root {
-      color-scheme: dark;
-    }
-    body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #06060C;
-      color: #F1F5F9;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      overflow-x: hidden;
-    }
-    .font-display {
-      font-family: 'Outfit', sans-serif;
-    }
-    .font-mono {
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* Atmospheric Top Arch Halo Gradient */
-    .atmospheric-halo {
-      position: absolute;
-      top: -160px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 1000px;
-      height: 480px;
-      background: radial-gradient(ellipse 60% 45% at 50% 20%, rgba(139, 92, 246, 0.38) 0%, rgba(124, 58, 237, 0.18) 45%, rgba(6, 6, 12, 0) 75%);
-      border-radius: 50%;
-      filter: blur(40px);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Subtle grid pattern background */
-    .bg-grid-pattern {
-      background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
-      background-size: 32px 32px;
-    }
-
-    /* Hide scrollbars cleanly */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* Glass card styles */
-    .glass-card {
-      background: rgba(14, 13, 27, 0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(168, 85, 247, 0.15);
-    }
-    .glass-card-hover:hover {
-      border-color: rgba(168, 85, 247, 0.4);
-      box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.25);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fadeIn {
-      animation: fadeIn 0.25s ease-out both;
-    }
-
-    /* High-visibility keyboard focus indicator (WCAG 2.4.7) */
-    :focus-visible {
-      outline: 2px solid #A855F7;
-      outline-offset: 2px;
-    }
-
-    /* Respect reduced motion preferences (WCAG 2.3.3) */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-      }
-    }
-  </style>
-
-  <!-- ESM Import Map for React & Lucide React -->
-  <script type="importmap">
-  {
-    "imports": {
-      "react": "https://esm.sh/react@18.3.1",
-      "react-dom": "https://esm.sh/react-dom@18.3.1",
-      "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-      "lucide-react": "https://esm.sh/lucide-react@0.468.0?deps=react@18.3.1"
-    }
-  }
-  </script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
 </head>
 <body class="min-h-screen bg-[#06060C] text-slate-100 antialiased selection:bg-purple-600 selection:text-white relative">
-  <!-- Glowing Atmospheric Halo -->
-  <div class="atmospheric-halo"></div>
-
+  <div class="atmospheric-halo" aria-hidden="true"></div>
   <div id="root" class="relative z-10"></div>
-
-  <!-- Load Compiled ESM Component -->
-  <script type="module" src="./bootstrap.js"></script>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

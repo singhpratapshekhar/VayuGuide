@@ -1,5 +1,5 @@
 import React from "react";
-import { Bot, Clock, MapPin, RefreshCw, Sliders, Sun } from "lucide-react";
+import { AlertTriangle, Bot, Cigarette, Clock, MapPin, RefreshCw, Sliders, Sun } from "lucide-react";
 
 /**
  * Live AQI & Smog Simulator centerpiece card with 24-hour diurnal dispersion chart
@@ -37,13 +37,13 @@ export default function TelemetryHeroCard({
           <div
             aria-hidden="true"
             className={`w-2.5 h-2.5 rounded-full ${
-              isSimulatingAQI ? "bg-purple-400 animate-pulse" : "bg-emerald-400 animate-ping"
+              isSimulatingAQI ? "bg-purple-400 animate-pulse" : "bg-emerald-400"
             }`}
           />
           <span className="text-xs font-mono font-bold tracking-wider text-slate-200 uppercase">
             {isSimulatingAQI ? "SIMULATED SMOG EPISODE" : "LIVE SENSOR TELEMETRY"} — {city.name.toUpperCase()}
           </span>
-          <span className="text-[11px] text-slate-300 font-mono">
+          <span className="text-xs text-slate-300 font-mono">
             ({isSimulatingAQI ? "Scenario Stress Test" : `Updated ${effectiveAirData.updatedAt}`})
           </span>
         </div>
@@ -53,10 +53,10 @@ export default function TelemetryHeroCard({
             type="button"
             aria-pressed={isSimulatingAQI}
             onClick={() => setIsSimulatingAQI((prev) => !prev)}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
               isSimulatingAQI
                 ? "bg-purple-600 text-white border-purple-400 shadow-[0_0_12px_rgba(147,51,234,0.5)]"
-                : "bg-[#181630] hover:bg-[#232044] text-purple-300 border-purple-500/20"
+                : "bg-[#181630] hover:bg-[#232044] text-purple-200 border-purple-500/20"
             }`}
           >
             <Sliders size={12} aria-hidden="true" />
@@ -69,15 +69,15 @@ export default function TelemetryHeroCard({
               loadCityData(city);
             }}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181630] hover:bg-[#232044] text-xs font-semibold text-slate-200 border border-purple-500/20 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181630] hover:bg-[#232044] text-xs font-semibold text-slate-200 border border-purple-500/20 transition-colors cursor-pointer"
           >
-            <RefreshCw size={12} className={loading ? "animate-spin text-purple-400" : ""} aria-hidden="true" />
+            <RefreshCw size={12} className={loading ? "animate-spin text-purple-300" : ""} aria-hidden="true" />
             <span>Sync Feed</span>
           </button>
           <button
             type="button"
             onClick={() => setIsSearchOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181630] hover:bg-[#232044] text-xs font-semibold text-purple-300 border border-purple-500/20 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181630] hover:bg-[#232044] text-xs font-semibold text-purple-200 border border-purple-500/20 transition-colors cursor-pointer"
           >
             <MapPin size={12} aria-hidden="true" />
             <span>Change City</span>
@@ -103,7 +103,7 @@ export default function TelemetryHeroCard({
                   type="button"
                   aria-pressed={simulatedAQI === preset.val}
                   onClick={() => setSimulatedAQI(preset.val)}
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold border cursor-pointer ${
                     simulatedAQI === preset.val
                       ? "bg-purple-600 border-purple-300 text-white"
                       : "bg-[#141229] border-purple-500/25 text-slate-300 hover:text-white"
@@ -131,11 +131,11 @@ export default function TelemetryHeroCard({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-6 items-center">
         <div className="lg:col-span-5 space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#15132B] border border-purple-500/30">
-            <span className="w-2 h-2 rounded-full" style={{ background: aqiCategory.ringColor }} aria-hidden="true" />
+            <span className={`w-2 h-2 rounded-full ${aqiCategory.badgeColor}`} aria-hidden="true" />
             <span className="text-xs font-bold font-mono uppercase tracking-wider text-slate-200">
               {aqiCategory.status}
             </span>
-            <span className="text-[10px] text-purple-300 font-bold px-1.5 py-0.2 rounded bg-purple-950/80">
+            <span className="text-[11px] text-purple-200 font-bold px-1.5 py-0.5 rounded bg-purple-950/80">
               {aqiCategory.grap}
             </span>
           </div>
@@ -146,11 +146,7 @@ export default function TelemetryHeroCard({
             </span>
             <div className="flex items-baseline gap-3">
               <span
-                className="font-mono font-black text-6xl sm:text-7xl md:text-8xl tracking-tighter"
-                style={{
-                  color: aqiCategory.ringColor,
-                  textShadow: `0 0 35px ${aqiCategory.glowColor}`
-                }}
+                className={`font-mono font-black text-6xl sm:text-7xl md:text-8xl tracking-tighter ${aqiCategory.ringTextClass}`}
               >
                 {effectiveAirData.aqi}
               </span>
@@ -161,7 +157,9 @@ export default function TelemetryHeroCard({
           <p className="text-sm text-slate-200 leading-relaxed font-medium">{aqiCategory.summary}</p>
 
           <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#141229] border border-purple-500/20 text-xs text-slate-200 shadow-inner">
-            <span className="text-2xl" aria-hidden="true">🚬</span>
+            <div className="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-center shrink-0">
+              <Cigarette size={18} className="text-purple-300" aria-hidden="true" />
+            </div>
             <div>
               <span className="text-[11px] text-slate-300 block font-medium">
                 Berkeley Earth Equivalence ({effectiveAirData.pm25} µg/m³ ÷ 22)
@@ -194,27 +192,27 @@ export default function TelemetryHeroCard({
           </div>
 
           <div className="pt-6 pb-2" role="region" aria-label="24-hour AQI trajectory chart">
-            <div className="grid grid-cols-6 gap-2 sm:gap-3 items-end h-48">
+            <ul className="grid grid-cols-6 gap-2 sm:gap-3 items-end h-48">
               {effectiveAirData.trend.slice(0, 6).map((point) => {
                 const isPeak = point.aqi === peakPoint.aqi;
                 const isSafe = point.aqi === safestPoint.aqi && !isPeak;
                 const heightPct = Math.min(95, Math.max(22, (point.aqi / 380) * 100));
 
                 return (
-                  <div
+                  <li
                     key={point.time}
                     className="flex flex-col items-center h-full justify-end group"
                     aria-label={`${point.time}: ${point.aqi} AQI`}
                   >
                     {isPeak ? (
-                      <div className="mb-2 flex flex-col items-center animate-bounce">
+                      <div className="mb-2 flex flex-col items-center">
                         <span className="px-2 py-0.5 rounded-full bg-purple-600 text-white text-[10px] font-mono font-bold shadow-[0_0_15px_rgba(168,85,247,0.8)] whitespace-nowrap">
                           Peak {point.aqi}
                         </span>
                         <div className="w-2 h-2 rounded-full bg-white ring-4 ring-purple-500 shadow-[0_0_10px_white] mt-0.5" aria-hidden="true" />
                       </div>
                     ) : (
-                      <span className="text-[10px] font-mono text-slate-300 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[11px] font-mono text-slate-300 mb-1">
                         {point.aqi}
                       </span>
                     )}
@@ -237,33 +235,34 @@ export default function TelemetryHeroCard({
                         isPeak
                           ? "text-purple-300 font-bold"
                           : isSafe
-                          ? "text-emerald-400 font-bold"
+                          ? "text-emerald-300 font-bold"
                           : "text-slate-300"
                       }`}
                     >
                       {point.time}
                     </span>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </div>
         </div>
       </div>
 
       <div className="mt-6 p-4 rounded-2xl bg-[#131129] border border-purple-500/20 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="space-y-1">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-purple-300 font-bold block">
-            📍 {city.name} Smog Fingerprint
+          <span className="text-[11px] font-mono uppercase tracking-wider text-purple-300 font-bold flex items-center gap-1.5">
+            <MapPin size={12} aria-hidden="true" />
+            <span>{city.name} Smog Fingerprint</span>
           </span>
           <p className="text-xs text-slate-200 font-medium">{locationProfile.smogDrivers}</p>
-          <p className="text-[11px] text-slate-300">{locationProfile.localTip}</p>
+          <p className="text-xs text-slate-300">{locationProfile.localTip}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap self-start md:self-center">
           <button
             type="button"
             onClick={() => setActiveTab("routine")}
-            className="px-3.5 py-2 rounded-xl bg-purple-600/25 hover:bg-purple-600/40 border border-purple-500/40 text-xs font-bold text-purple-200 whitespace-nowrap flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-purple-600/25 hover:bg-purple-600/40 border border-purple-500/40 text-xs font-bold text-purple-200 whitespace-nowrap flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Clock size={13} aria-hidden="true" />
             <span>Daily Routine</span>
@@ -275,7 +274,7 @@ export default function TelemetryHeroCard({
                 `Plan my low-emission daily routine today in ${city.name} at ${effectiveAirData.aqi} AQI`
               )
             }
-            className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white whitespace-nowrap flex items-center gap-1.5 shadow-[0_0_15px_rgba(147,51,234,0.4)] transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white whitespace-nowrap flex items-center gap-1.5 shadow-[0_0_15px_rgba(147,51,234,0.4)] transition-colors cursor-pointer"
           >
             <Bot size={13} aria-hidden="true" />
             <span>Ask AI Co-Pilot</span>
@@ -290,8 +289,9 @@ export default function TelemetryHeroCard({
           className="mt-4 p-4 rounded-2xl bg-red-950/25 border border-red-500/35 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
         >
           <div className="space-y-1">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-red-300 block">
-              🚨 {aqiCategory.grap} Family &amp; Community Advisory
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-red-300 flex items-center gap-1.5">
+              <AlertTriangle size={12} aria-hidden="true" />
+              <span>{aqiCategory.grap} Family &amp; Community Advisory</span>
             </span>
             <p className="text-xs text-slate-200">
               {effectiveAirData.aqi > 300
@@ -302,7 +302,7 @@ export default function TelemetryHeroCard({
           <button
             type="button"
             onClick={() => setActiveTab("whatsapp")}
-            className="px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-400/40 text-xs font-bold text-red-200 whitespace-nowrap self-start sm:self-center"
+            className="px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-400/40 text-xs font-bold text-red-200 whitespace-nowrap self-start sm:self-center cursor-pointer"
           >
             Alert RWA &amp; Family
           </button>
